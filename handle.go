@@ -35,6 +35,7 @@ func login(c echo.Context) error {
 	cookie.Name = "sid"
 	cookie.Value = t
 	cookie.Expires = time.Now().Add(24 * time.Hour)
+	cookie.HttpOnly=true
 	c.SetCookie(cookie)
 	return c.JSON(http.StatusOK, map[string]string{
 		"token": t,
