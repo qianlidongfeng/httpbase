@@ -1,0 +1,28 @@
+debug: false
+
+log:
+  logtype: netlog
+  db:
+    user: root
+    password: 333221
+    address: 127.0.0.1
+    database: "project_logs"
+    maxopenconns: 4
+    maxidleconns: 4
+    table: cms
+
+httpserver:
+  address: :443
+  readtimeout: 500000 #毫秒
+  writetimeout: 500000 #毫秒
+  https: false
+  certfile: server.crt
+  keyfile: server.key
+
+db:
+  user: root
+  password: 333221
+  address: 127.0.0.1
+  database: "cms"
+  maxopenconns: 2
+  maxidleconns: 2
