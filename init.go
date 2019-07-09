@@ -1,33 +1,32 @@
 package main
 
 import (
-	"github.com/qianlidongfeng/loger"
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/qianlidongfeng/toolbox"
-	"os"
 )
 
 func init(){
-	global=Global{}
-	configFile,err:=toolbox.GetConfigFile()
-	if err != nil{
-		panic(err)
+	G=Global{}
+	G.Init()
+	InitTables()
+}
+
+func InitTables(){
+	InitUserTable()
+}
+
+func InitUserTable(){
+	fileds:=map[string]string{
+		"id":`int(11) UNSIGNED NOT NULL AUTO_INCREMENT`,
+		"name":`varchar(32) NOT NULL`,
+		"password":`varchar(64) NOT NULL`,
+		"grop":`varchar(16) NOT NULL`,
+		"ltime":`datetime(0) NOT NULL`,
 	}
-	err=toolbox.LoadConfig(configFile,&global.cfg)
-	if err != nil{
-		panic(err)
+	index:=map[string]toolbox.MysqlIndex{
+			"name":toolbox.MysqlIndex{Typ:"unique",Name:"column",Method:"BTREE"},
 	}
-	if global.cfg.Debug == false{
-		toolbox.RediRectOutPutToLog()
-	}
-	global.log,err=loger.NewLoger(global.cfg.Log)
-	if err != nil{
-		panic(err)
-	}
-	apppath,err:=toolbox.AppDir()
-	if err != nil{
-		global.log.Fatal(err)
-	}
-	if err:=os.Chdir(apppath);err!=nil{
-		global.log.Fatal(err)
+	if err:=toolbox.CheckAndFixTable(G.db,"users",fileds,index);err!=nil{
+		G.log.Fatal(err)
 	}
 }

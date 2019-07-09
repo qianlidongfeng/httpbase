@@ -3,23 +3,37 @@ package main
 import (
 	"crypto/tls"
 	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
-	"github.com/qianlidongfeng/execho"
 	"net/http"
 	"time"
 )
 
+func InitEcho(e *echo.Echo){
+	e.DisableHTTP2=true
+	//router
+	e.POST("/login", login)
+	e.GET("/", accessible)
+
+	r := e.Group("/restricted")
+	r.GET("", restricted)
+	//recover middleware
+	e.Use(G.middleware["recover"])
+	//jtw auth middleware
+	r.Use(G.middleware["loginJwtAuth"])
+	//render
+	e.Renderer=G.renderer
+}
+
 func main() {
 	s := &http.Server{
-		Addr:  global.cfg.Httpserver.Address,
-		ReadTimeout:  global.cfg.Httpserver.ReadTimeOut*time.Millisecond,
-		WriteTimeout: global.cfg.Httpserver.WriteTimeOut*time.Millisecond,
+		Addr:  G.cfg.Httpserver.Address,
+		ReadTimeout:  G.cfg.Httpserver.ReadTimeOut*time.Millisecond,
+		WriteTimeout: G.cfg.Httpserver.WriteTimeOut*time.Millisecond,
 	}
-	if global.cfg.Httpserver.Https{
-		crt, err := tls.LoadX509KeyPair(global.cfg.Httpserver.CertFile, global.cfg.Httpserver.KeyFile)
+	if G.cfg.Httpserver.Https{
+		crt, err := tls.LoadX509KeyPair(G.cfg.Httpserver.CertFile, G.cfg.Httpserver.KeyFile)
 		if err != nil {
 			panic(err)
-			global.log.Fatal(err)
+			G.log.Fatal(err)
 			return
 		}
 		s.TLSConfig= &tls.Config{
@@ -37,20 +51,6 @@ func main() {
 		s.TLSNextProto=make(map[string]func(*http.Server, *tls.Conn, http.Handler))
 	}
 	e := echo.New()
-	//set
-	e.DisableHTTP2=true
-	//router
-	e.POST("/login", login)
-	e.GET("/", accessible)
-	//recover middleware
-	exMiddleWare:=execho.NewMiddleWare()
-	e.Use(exMiddleWare.Recover(global.log))
-	r := e.Group("/restricted")
-	c := middleware.DefaultJWTConfig
-	c.SigningKey = []byte("secret")
-	c.TokenLookup = "cookie:sid"
-	//jtw auth middleware
-	r.Use(middleware.JWTWithConfig(c))
-	r.GET("", restricted)
-	global.log.Fatal(e.StartServer(s))
+	InitEcho(e)
+	G.log.Fatal(e.StartServer(s))
 }

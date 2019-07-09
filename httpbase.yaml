@@ -19,6 +19,9 @@ httpserver:
   certfile: server.crt
   keyfile: server.key
 
+secret:
+  loginjwt: 333221
+
 db:
   user: root
   password: 333221

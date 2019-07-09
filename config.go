@@ -6,9 +6,14 @@ import (
 	"github.com/qianlidongfeng/toolbox"
 )
 
+type SecretConfig struct{
+	LoginJwt string
+}
+
 type Config struct{
 	Debug bool
 	Httpserver httpserver.Config
 	Log loger.Config
 	DB toolbox.MySqlConfig
+	Secret SecretConfig
 }

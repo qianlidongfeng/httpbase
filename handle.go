@@ -12,27 +12,26 @@ func login(c echo.Context) error {
 	username := c.FormValue("username")
 	password := c.FormValue("password")
 
+	realPasswd := G.DB.GetUserPasswordByName(username)
 	// Throws unauthorized error
-	if username == "jon" && password == "shhh!" {
+	if password != realPasswd {
 		return echo.ErrUnauthorized
 	}
 
 	// Create token
 	token := jwt.New(jwt.SigningMethodHS256)
-
 	// Set claims
 	claims := token.Claims.(jwt.MapClaims)
 	claims["name"] = username
-	claims["admin"] = true
-	claims["exp"] = time.Now().Add(time.Second * 10).Unix()
+	claims["exp"] = time.Now().Add(time.Hour*12).Unix()
 
 	// Generate encoded token and send it as response.
-	t, err := token.SignedString([]byte("secret"))
+	t, err := token.SignedString([]byte(G.cfg.Secret.LoginJwt))
 	if err != nil {
 		return err
 	}
 	cookie := new(http.Cookie)
-	cookie.Name = "sid"
+	cookie.Name = "session"
 	cookie.Value = t
 	cookie.Expires = time.Now().Add(24 * time.Hour)
 	cookie.HttpOnly=true
